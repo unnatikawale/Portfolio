@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. Typewriter Animation Effect
     // ==========================================
     const typedTarget = document.querySelector('#typed-target');
-    const words = ["Full Stack Developer", "Laravel Enthusiast", "Java Developer", "UI/UX Specialist"];
+    const words = ["Full Stack Developer", "Laravel Enthusiast", "Java Developer", "Python Developer"];
     let wordIndex = 0;
     let charIndex = 0;
     let isDeleting = false;
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!typedTarget) return;
 
         const currentWord = words[wordIndex];
-        
+
         if (isDeleting) {
             typedTarget.textContent = currentWord.substring(0, charIndex - 1);
             charIndex--;
@@ -121,10 +121,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ==========================================
-    // 5. Contact Form Handler (Success Toast)
+    // 5. Contact Form Handler (Success Toast & Python API)
     // ==========================================
     const contactForm = document.getElementById('portfolio-contact-form');
     const successToast = document.getElementById('success-toast');
+    const submitBtn = document.getElementById('contact-submit-btn');
 
     if (contactForm && successToast) {
         contactForm.addEventListener('submit', (e) => {
@@ -133,20 +134,71 @@ document.addEventListener('DOMContentLoaded', () => {
             // Perform simple frontend validation/processing
             const name = document.getElementById('contact-name').value;
             const email = document.getElementById('contact-email').value;
+            const phone = document.getElementById('contact-phone').value || 'N/A';
             const subject = document.getElementById('contact-subject').value;
             const message = document.getElementById('contact-message').value;
 
             if (name && email && subject && message) {
-                // Show success toast
-                successToast.classList.add('show');
+                // Change button state to sending
+                const originalBtnText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Sending Message...';
+                submitBtn.style.opacity = '0.7';
 
-                // Clear input fields
-                contactForm.reset();
+                // Send request to Python backend
+                fetch('http://127.0.0.1:5000/api/contact', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        email: email,
+                        phone: phone,
+                        subject: subject,
+                        message: message
+                    })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Failed to send message');
+                    }
+                })
+                .then(data => {
+                    // Success Path
+                    successToast.textContent = 'Message Sent Successfully!';
+                    successToast.style.background = 'var(--primary-gradient)'; // Default purple
+                    successToast.classList.add('show');
+                    
+                    // Reset Form and Button
+                    contactForm.reset();
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalBtnText;
+                    submitBtn.style.opacity = '1';
 
-                // Hide success toast after 3.5 seconds
-                setTimeout(() => {
-                    successToast.classList.remove('show');
-                }, 3500);
+                    // Hide toast after 3.5 seconds
+                    setTimeout(() => {
+                        successToast.classList.remove('show');
+                    }, 3500);
+                })
+                .catch(error => {
+                    // Error Path
+                    successToast.textContent = 'Connection Error: Please verify Python backend is running.';
+                    successToast.style.background = 'linear-gradient(135deg, #ff416c, #ff4b2b)'; // Sleek neon red warning
+                    successToast.classList.add('show');
+
+                    // Reset Button
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalBtnText;
+                    submitBtn.style.opacity = '1';
+
+                    // Hide toast after 4.5 seconds
+                    setTimeout(() => {
+                        successToast.classList.remove('show');
+                    }, 4500);
+                });
             }
         });
     }
