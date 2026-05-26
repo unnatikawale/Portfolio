@@ -202,4 +202,102 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // ==========================================
+    // 6. Premium Custom Trailing Cursor
+    // ==========================================
+    const cursorDot = document.getElementById('cursor-dot');
+    const cursorOutline = document.getElementById('cursor-outline');
+
+    if (cursorDot && cursorOutline) {
+        let mouseX = -100;
+        let mouseY = -100;
+        let outlineX = -100;
+        let outlineY = -100;
+        let isCursorActive = false;
+
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            if (!isCursorActive) {
+                cursorDot.style.opacity = '1';
+                cursorOutline.style.opacity = '1';
+                isCursorActive = true;
+            }
+        });
+
+        // Use requestAnimationFrame for fluid outline tracking
+        function animateCursor() {
+            let distX = mouseX - outlineX;
+            let distY = mouseY - outlineY;
+            
+            // Lerp mathematical smoothing
+            outlineX = outlineX + distX * 0.14;
+            outlineY = outlineY + distY * 0.14;
+            
+            cursorDot.style.left = `${mouseX}px`;
+            cursorDot.style.top = `${mouseY}px`;
+            
+            cursorOutline.style.left = `${outlineX}px`;
+            cursorOutline.style.top = `${outlineY}px`;
+            
+            requestAnimationFrame(animateCursor);
+        }
+        requestAnimationFrame(animateCursor);
+
+        // Fade out cursor when leaving window viewport
+        document.addEventListener('mouseleave', () => {
+            cursorDot.style.opacity = '0';
+            cursorOutline.style.opacity = '0';
+            isCursorActive = false;
+        });
+
+        // Re-fade in on mouse reentry
+        document.addEventListener('mouseenter', () => {
+            cursorDot.style.opacity = '1';
+            cursorOutline.style.opacity = '1';
+            isCursorActive = true;
+        });
+
+        // Query all hoverable items for interactive scaling effects
+        const interactiveElements = document.querySelectorAll(
+            'a, button, .tab-btn, .social-icons a, .service-box, .project-card, .info-card, input, textarea, #menu-icon'
+        );
+
+        interactiveElements.forEach(elem => {
+            elem.addEventListener('mouseenter', () => {
+                document.body.classList.add('cursor-hover');
+            });
+            elem.addEventListener('mouseleave', () => {
+                document.body.classList.remove('cursor-hover');
+            });
+        });
+    }
+
+    // ==========================================
+    // 7. Scroll Reveal Viewport Observer
+    // ==========================================
+    const revealElements = document.querySelectorAll('.scroll-reveal');
+
+    if (revealElements.length > 0) {
+        const revealOptions = {
+            root: null,
+            threshold: 0.12,
+            rootMargin: '0px 0px -40px 0px'
+        };
+
+        const revealObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('in-view');
+                    observer.unobserve(entry.target); // Fire animation only once
+                }
+            });
+        }, revealOptions);
+
+        revealElements.forEach(elem => {
+            revealObserver.observe(elem);
+        });
+    }
 });
