@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Query all hoverable items for interactive scaling effects
         const interactiveElements = document.querySelectorAll(
-            'a, button, .tab-btn, .social-icons a, .service-box, .project-card, .info-card, input, textarea, #menu-icon'
+            'a, button, .tab-btn, .social-icons a, .service-box, .project-card, .certificate-card, .info-card, input, textarea, #menu-icon'
         );
 
         interactiveElements.forEach(elem => {
@@ -298,6 +298,65 @@ document.addEventListener('DOMContentLoaded', () => {
 
         revealElements.forEach(elem => {
             revealObserver.observe(elem);
+        });
+    }
+
+    // ==========================================
+    // 8. Certificates Lightbox Modal Viewer
+    // ==========================================
+    const certModal = document.getElementById('cert-lightbox-modal');
+    const certCloseBtn = document.getElementById('cert-modal-close');
+    const lightboxImg = document.getElementById('lightbox-img');
+    const lightboxCaption = document.getElementById('lightbox-caption');
+    const certViewBtns = document.querySelectorAll('.cert-view-btn');
+
+    if (certModal && certCloseBtn && lightboxImg && lightboxCaption) {
+        // Open Modal
+        certViewBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const certSrc = btn.getAttribute('data-cert');
+                const certTitle = btn.getAttribute('data-title');
+                const certIssuer = btn.getAttribute('data-issuer');
+
+                // If the source is a PDF, open it in a new tab/window
+                if (certSrc.toLowerCase().endsWith('.pdf')) {
+                    window.open(certSrc, '_blank');
+                } else {
+                    lightboxImg.src = certSrc;
+                    lightboxCaption.textContent = `${certTitle} - ${certIssuer}`;
+                    certModal.classList.add('show');
+                    certModal.setAttribute('aria-hidden', 'false');
+                    document.body.style.overflow = 'hidden'; // Disable background scrolling
+                }
+            });
+        });
+
+        // Close Modal Function
+        const closeCertModal = () => {
+            certModal.classList.remove('show');
+            certModal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = ''; // Re-enable background scrolling
+            // Clear source after transition to prevent flicker on reopen
+            setTimeout(() => {
+                lightboxImg.src = '';
+                lightboxCaption.textContent = '';
+            }, 400);
+        };
+
+        // Close events
+        certCloseBtn.addEventListener('click', closeCertModal);
+        
+        certModal.addEventListener('click', (e) => {
+            // Close if clicking outside the image container content
+            if (e.target === certModal) {
+                closeCertModal();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && certModal.classList.contains('show')) {
+                closeCertModal();
+            }
         });
     }
 });
